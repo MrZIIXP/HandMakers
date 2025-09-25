@@ -1,18 +1,35 @@
 'use client'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { ArrowRight, Star, TrendingUp, Users, Award } from 'lucide-react'
+import { ArrowRight, Star, TrendingUp, Users, Award, Heart } from 'lucide-react'
 import { usePathname } from '@/i18n/navigation'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 export default function HomePage() {
 	const t = useTranslations('HomePage')
 	const pathname = usePathname()
+	const [products, setProducts] = useState()
+
+	const get = async () => {
+		try {
+			const { data } = await axios.get(
+				'https://2b28d574f3d0f0d6.mokky.dev/Products'
+			)
+			setProducts(data)
+		} catch (error) {}
+	}
+
+	useEffect(() => {
+		get()
+	}, [])
+
 	return (
 		<div className='space-y-16'>
 			<section className='relative bg-gradient-to-br from-blue-50 to-white py-20'>
 				<div className='container mx-auto px-4'>
 					<div className='grid lg:grid-cols-2 gap-12 items-center'>
 						<div className='space-y-6'>
-							<div className='bg-blue-100 text-blue-700 hover:bg-blue-100'>
+							<div className='bg-blue-100 font-bold p-1 text-xs w-fit rounded-lg text-blue-700 hover:bg-blue-100'>
 								🎨 Платформа для мастеров
 							</div>
 							<h1 className='text-4xl lg:text-6xl font-bold text-blue-900 leading-tight'>
@@ -25,14 +42,11 @@ export default function HomePage() {
 								творчеством с сообществом единомышленников.
 							</p>
 							<div className='flex flex-col sm:flex-row gap-4'>
-								<button className='bg-blue-600 hover:bg-blue-700 text-lg px-8'>
+								<button className='bg-blue-600 flex items-center rounded-lg py-2 text-white hover:bg-blue-700 text-lg px-6'>
 									Исследовать маркет
 									<ArrowRight className='w-5 h-5 ml-2' />
 								</button>
-								<button
-									variant='outline'
-									className='border-blue-200 text-blue-600 hover:bg-blue-50 text-lg px-8'
-								>
+								<button className='border-blue-200 rounded-lg border text-blue-600 hover:bg-blue-50 text-lg px-8'>
 									Смотреть видео
 								</button>
 							</div>
@@ -42,7 +56,7 @@ export default function HomePage() {
 								<div className='space-y-4 relative'>
 									<div className='w-full relative h-48'>
 										<Image
-											src=''
+											src='/images/Home/photo-1678791673777-57274271e434.jpg'
 											alt='Керамика ручной работы'
 											className='w-full bg-gray-300 h-48 object-cover rounded-xl'
 											fill
@@ -50,7 +64,7 @@ export default function HomePage() {
 									</div>
 									<div className='w-full relative h-32'>
 										<Image
-											src=''
+											src='/images/Home/photo-1715374033196-0ff662284a7e.jpg'
 											alt='Украшения ручной работы'
 											className='w-full bg-gray-300 h-32 object-cover rounded-xl'
 											fill
@@ -60,7 +74,7 @@ export default function HomePage() {
 								<div className='space-y-4 pt-8'>
 									<div className='w-full relative h-32'>
 										<Image
-											src=''
+											src='/images/Home/photo-1755991699037-73eb5dff62f5.jpg'
 											alt='Текстиль ручной работы'
 											className='w-full bg-gray-300 h-32 object-cover rounded-xl'
 											fill
@@ -68,7 +82,7 @@ export default function HomePage() {
 									</div>
 									<div className='w-full relative h-48'>
 										<Image
-											src=''
+											src='/images/Home/photo-1667508868067-4aa2a35cd93c.jpg'
 											alt='Живопись ручной работы'
 											className='w-full bg-gray-300 h-48 object-cover rounded-xl'
 											fill
@@ -134,7 +148,22 @@ export default function HomePage() {
 						<ArrowRight className='w-4 h-4 ml-2' />
 					</button>
 				</div>
-				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'></div>
+				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+					{products?.slice(0, 4).map(item => (
+						<div className='w-full rounded-3xl border border-blue-500' key={item?.id}>
+							<div className='relative w-full h-72 rounded-t-3xl group scale-[1.005] overflow-hidden'>
+								<Image alt='' src='/images/Home/photo-1667508868067-4aa2a35cd93c.jpg' fill className='bg-gray-500 object-cover cursor-pointer hover:scale-110 transition-all duration-300 rounded-t-3xl'/>
+								<div className="size-10 transition-all duration-200 absolute top-5 right-5 items-center justify-center group-hover:opacity-100 flex opacity-0 rounded-full bg-white/60">
+									<Heart />
+								</div>
+							</div>
+							<div className="p-5 gap-2 flex flex-col justify-between">
+								<p className='hover:text-blue-500 font-semibold transition-all duration-200 leading-4 cursor-pointer'>{item.product}</p>
+								<p className='hover:text-blue-500 transition-all font-light duration-200 leading-4 cursor-pointer'>{item.description?.slice(0, 40)}</p>
+							</div>
+						</div>
+					))}
+				</div>
 			</section>
 
 			{/* Top Sellers */}
