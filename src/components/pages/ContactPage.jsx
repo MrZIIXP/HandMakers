@@ -18,15 +18,14 @@ export function ContactPage() {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
-    // Here you would typically send the form data to your backend
     alert('Сообщение отправлено! Мы свяжемся с вами в ближайшее время.');
     setFormData({ name: '', email: '', subject: '', category: '', message: '' });
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

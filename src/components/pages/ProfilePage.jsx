@@ -39,12 +39,12 @@ import {
 } from 'lucide-react'
 import { categories } from '../../data/mockData'
 
-export function ProfilePage({ onNavigate, isLoggedIn }) {
+export function ProfilePage({ onNavigate }) {
 	const [newProductOpen, setNewProductOpen] = useState(false)
 	const [newVideoOpen, setNewVideoOpen] = useState(false)
 	const [editProfileOpen, setEditProfileOpen] = useState(false)
 
-	if (!isLoggedIn) {
+	if (!localStorage.getItem("token")) {
 		return (
 			<div className='container mx-auto px-4 py-16 text-center'>
 				<h1 className='text-2xl font-bold text-gray-900 mb-4'>
@@ -64,17 +64,18 @@ export function ProfilePage({ onNavigate, isLoggedIn }) {
 	}
 
 	// Mock user data
-	const user = {
-		id: '1',
-		name: 'Анна Гончарова',
-		email: 'anna@example.com',
-		avatar:
-			'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-		isSeller: true,
-		description:
-			'Керамист с 10-летним опытом. Создаю уникальную посуду и декор.',
-		location: 'Москва',
-	}
+	const user = JSON.parse(atob(localStorage.getItem('token').split('.')[1]))
+	// || {
+	// 	id: '1',
+	// 	name: 'Анна Гончарова',
+	// 	email: 'anna@example.com',
+	// 	avatar:
+	// 		'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+	// 	isSeller: true,
+	// 	description:
+	// 		'Керамист с 10-летним опытом. Создаю уникальную посуду и декор.',
+	// 	location: 'Москва',
+	// }
 
 	const myProducts = [
 		{
@@ -143,17 +144,17 @@ export function ProfilePage({ onNavigate, isLoggedIn }) {
 					<div className='flex flex-col lg:flex-row gap-6 items-start'>
 						<div className='flex items-center space-x-6'>
 							<Avatar className='w-24 h-24'>
-								<AvatarImage src={user.avatar} />
+								<AvatarImage src={user?.avatar} />
 								<AvatarFallback className='text-2xl'>
-									{user.name.charAt(0)}
+									{user?.name?.charAt(0)}
 								</AvatarFallback>
 							</Avatar>
 							<div>
 								<h1 className='text-2xl font-bold text-gray-900'>
-									{user.name}
+									{user?.name}
 								</h1>
-								<p className='text-gray-600'>{user.email}</p>
-								<p className='text-sm text-gray-500 mt-1'>{user.location}</p>
+								<p className='text-gray-600'>{user?.email}</p>
+								<p className='text-sm text-gray-500 mt-1'>{user?.location}</p>
 							</div>
 						</div>
 
@@ -175,17 +176,17 @@ export function ProfilePage({ onNavigate, isLoggedIn }) {
 									<div className='space-y-4'>
 										<div>
 											<Label htmlFor='name'>Имя</Label>
-											<Input id='name' defaultValue={user.name} />
+											<Input id='name' defaultValue={user?.name} />
 										</div>
 										<div>
 											<Label htmlFor='location'>Местоположение</Label>
-											<Input id='location' defaultValue={user.location} />
+											<Input id='location' defaultValue={user?.location} />
 										</div>
 										<div>
 											<Label htmlFor='description'>Описание</Label>
 											<Textarea
 												id='description'
-												defaultValue={user.description}
+												defaultValue={user?.description}
 											/>
 										</div>
 										<Button className='w-full'>Сохранить</Button>
@@ -320,11 +321,10 @@ export function ProfilePage({ onNavigate, isLoggedIn }) {
 											</div>
 											<div className='absolute top-3 left-3'>
 												<span
-													className={`px-2 py-1 text-xs rounded-full ${
-														product.status === 'active'
-															? 'bg-green-100 text-green-700'
-															: 'bg-yellow-100 text-yellow-700'
-													}`}
+													className={`px-2 py-1 text-xs rounded-full ${product.status === 'active'
+														? 'bg-green-100 text-green-700'
+														: 'bg-yellow-100 text-yellow-700'
+														}`}
 												>
 													{product.status === 'active' ? 'Активен' : 'Черновик'}
 												</span>
@@ -505,19 +505,19 @@ export function ProfilePage({ onNavigate, isLoggedIn }) {
 									<div className='space-y-4'>
 										<div>
 											<Label htmlFor='displayName'>Отображаемое имя</Label>
-											<Input id='displayName' defaultValue={user.name} />
+											<Input id='displayName' defaultValue={user?.name} />
 										</div>
 										<div>
 											<Label htmlFor='email'>Email</Label>
 											<Input
 												id='email'
 												type='email'
-												defaultValue={user.email}
+												defaultValue={user?.email}
 											/>
 										</div>
 										<div>
 											<Label htmlFor='location'>Местоположение</Label>
-											<Input id='location' defaultValue={user.location} />
+											<Input id='location' defaultValue={user?.location} />
 										</div>
 										<Button>Сохранить изменения</Button>
 									</div>

@@ -8,18 +8,19 @@ import { ArrowRight, Star, TrendingUp, Users, Award } from 'lucide-react'
 import { mockVideos, mockSellers } from '../../data/mockData'
 import { ImageWithFallback } from '../figma/ImageWithFallback'
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import { useRouter } from '@/i18n/navigation'
+import { AxiosRequest } from '@/store/axiosRequest'
 
-export function HomePage({ onNavigate }) {
+export function HomePage() {
 	const [mockProducts, setMockProducts] = useState(null)
 
 	const Update = async () => {
 		try {
-			const { data } = await axios.get(
-				'https://2b28d574f3d0f0d6.mokky.dev/Products'
+			const { data } = await AxiosRequest.get(
+				'/Products'
 			)
 			setMockProducts(data)
-		} catch (error) {}
+		} catch (error) { }
 	}
 
 	useEffect(() => {
@@ -29,6 +30,8 @@ export function HomePage({ onNavigate }) {
 	const featuredProducts = mockProducts?.slice(0, 4)
 	const featuredVideos = mockVideos?.slice(0, 3)
 	const topSellers = mockSellers?.slice(0, 3)
+
+	const router = useRouter()
 
 	return (
 		<div className='space-y-16'>
@@ -53,7 +56,7 @@ export function HomePage({ onNavigate }) {
 								<Button
 									size='lg'
 									className='bg-blue-600 hover:bg-blue-700 text-lg px-8'
-									onClick={() => onNavigate('marketplace')}
+									onClick={() => router.push('/marketplace')}
 								>
 									Исследовать маркет
 									<ArrowRight className='w-5 h-5 ml-2' />
@@ -62,7 +65,7 @@ export function HomePage({ onNavigate }) {
 									size='lg'
 									variant='outline'
 									className='border-blue-200 text-blue-600 hover:bg-blue-50 text-lg px-8'
-									onClick={() => onNavigate('videos')}
+									onClick={() => router.push('/videos')}
 								>
 									Смотреть видео
 								</Button>
@@ -148,7 +151,7 @@ export function HomePage({ onNavigate }) {
 					<Button
 						variant='outline'
 						className='border-blue-200 text-blue-600 hover:bg-blue-50'
-						onClick={() => onNavigate('marketplace')}
+						onClick={() => router.push('/marketplace')}
 					>
 						Смотреть все
 						<ArrowRight className='w-4 h-4 ml-2' />
@@ -176,7 +179,7 @@ export function HomePage({ onNavigate }) {
 						<Card
 							key={seller.id}
 							className='border-blue-100 hover:shadow-lg transition-all duration-300 cursor-pointer'
-							onClick={() => onNavigate('seller', { sellerId: seller.id })}
+							onClick={() => router.push('/seller', { sellerId: seller.id })}
 						>
 							<CardContent className='p-6 text-center space-y-4'>
 								<div className='w-20 h-20 mx-auto'>
@@ -223,7 +226,7 @@ export function HomePage({ onNavigate }) {
 						<Button
 							variant='outline'
 							className='border-blue-200 text-blue-600 hover:bg-blue-50'
-							onClick={() => onNavigate('videos')}
+							onClick={() => router.push('/videos')}
 						>
 							Смотреть все
 							<ArrowRight className='w-4 h-4 ml-2' />
@@ -235,7 +238,7 @@ export function HomePage({ onNavigate }) {
 								key={video.id}
 								video={video}
 								onVideoClick={id => console.log('Play video:', id)}
-								onSellerClick={id => onNavigate('seller', { sellerId: id })}
+								onSellerClick={id => router.push(`/seller/${seller?.sellerId}`)}
 							/>
 						))}
 					</div>
@@ -255,15 +258,15 @@ export function HomePage({ onNavigate }) {
 							size='lg'
 							variant='secondary'
 							className='bg-white text-blue-600 hover:bg-blue-50 text-lg px-8'
-							onClick={() => onNavigate('register')}
+							onClick={() => router.push('/register')}
 						>
 							Стать продавцом
 						</Button>
 						<Button
 							size='lg'
 							variant='outline'
-							className='border-blue-300 text-white hover:bg-blue-600 text-lg px-8'
-							onClick={() => onNavigate('about')}
+							className='border-blue-300 text-blue-600 hover:bg-blue-50 text-lg px-8'
+							onClick={() => router.push('/about')}
 						>
 							Узнать больше
 						</Button>

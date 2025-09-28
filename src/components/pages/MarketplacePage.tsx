@@ -236,8 +236,6 @@ export function MarketplacePage({ onNavigate }) {
                   <ProductCard
                     key={product.id}
                     product={product}
-                    onProductClick={(id) => onNavigate('product', { productId: id })}
-                    onSellerClick={(id) => onNavigate('seller', { sellerId: id })}
                   />
                 ))}
               </div>

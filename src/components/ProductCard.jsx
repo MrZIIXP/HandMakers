@@ -13,7 +13,7 @@ export function ProductCard({ product }) {
 				<ImageWithFallback
 					src={product?.image}
 					alt={product?.product}
-					onClick={() => router.push(`/product/${product?.id}`)}
+					onClick={() => router.push(`/marketplace/${product?.id}`)}
 					className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer'
 				/>
 				<div className='absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity'>
@@ -35,7 +35,7 @@ export function ProductCard({ product }) {
 				<div className='self-start	'>
 					<h3
 						className='font-semibold text-gray-900 line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors'
-						onClick={() => router.push(`/product/${product?.id}`)}
+						onClick={() => router.push(`/marketplace/${product?.id}`)}
 					>
 						{product?.product}
 					</h3>
@@ -54,7 +54,7 @@ export function ProductCard({ product }) {
 					<button
 						onClick={e => {
 							e.stopPropagation()
-							router.push(`/${product?.UserId}`)
+							router.push(`/seller/${product?.UserId}`)
 						}}
 						className='text-sm text-gray-600 hover:text-blue-600 transition-colors'
 					>
@@ -87,7 +87,7 @@ export function ProductCard({ product }) {
 
 				<Button
 					className='w-full bg-blue-600 hover:bg-blue-700'
-					onClick={() => router.push(`/product/${product?.id}`)}
+					onClick={() => router.push(`/marketplace/${product?.id}`)}
 				>
 					Подробнее
 				</Button>

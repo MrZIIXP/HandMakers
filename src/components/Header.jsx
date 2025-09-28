@@ -12,7 +12,6 @@ export function Header({ login = false }) {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  // Определяем текущую страницу по pathname
   const getCurrentPage = () => {
     if (pathname === '/en'|| pathname === "/tj" || pathname === "en") return 'home'
     if (pathname.includes('/videos')) return 'videos'
@@ -74,7 +73,7 @@ export function Header({ login = false }) {
 
           {/* Right Actions */}
           <div className="flex items-center space-x-3">
-            {login ? (
+            {localStorage.getItem("token") ? (
               <>
                 <Link href="/profile" className="hidden sm:flex">
                   <Button

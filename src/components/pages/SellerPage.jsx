@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { Card, CardContent } from '../ui/card'
@@ -20,14 +20,36 @@ import {
 	Eye,
 	Users,
 } from 'lucide-react'
-import { mockProducts, mockSellers, mockVideos } from '../../data/mockData'
+import axios from 'axios'
+import { useParams } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 
-export function SellerPage({ sellerId, onNavigate }) {
+export function SellerPage({ onNavigate }) {
 	const [isFollowing, setIsFollowing] = useState(false)
+	const { sellerById } = useParams()
+	const [seller, setMockSellers] = useState(null)
+	const [sellerProducts, setMockProducts] = useState(null)
+	const router = useRouter()
 
-	const seller = mockSellers.find(s => s.id === sellerId)
-	const sellerProducts = mockProducts.filter(p => p.sellerId === sellerId)
-	const sellerVideos = mockVideos.filter(v => v.sellerId === sellerId)
+	const Update = async () => {
+		try {
+			const { data } = await axios.get("https://2b28d574f3d0f0d6.mokky.dev/Users?id=" + sellerById)
+			const { data: data2 } = await axios.get("https://2b28d574f3d0f0d6.mokky.dev/Products?UserId=" + sellerById)
+			setMockSellers(data?.[0])
+			setMockProducts(data2)
+		} catch (error) {
+
+		}
+	}
+
+	useEffect(() => {
+		Update()
+	}, [])
+
+	// const sellerVideos = mockVideos?.filter(v => v.UserId === sellerById)
+
+	console.log(sellerProducts)
+	console.log(seller)
 
 	if (!seller) {
 		return (
@@ -35,30 +57,31 @@ export function SellerPage({ sellerId, onNavigate }) {
 				<h1 className='text-2xl font-bold text-gray-900 mb-4'>
 					Продавец не найден
 				</h1>
-				<Button onClick={() => onNavigate('marketplace')}>
+				<Button onClick={() => router.push('/marketplace')}>
 					Вернуться к каталогу
 				</Button>
 			</div>
 		)
 	}
 
+
 	const stats = [
-		{ icon: Package, label: 'Товаров', value: sellerProducts.length },
-		{ icon: Star, label: 'Рейтинг', value: seller.rating },
-		{ icon: Award, label: 'Продаж', value: seller.totalSales },
-		{ icon: Users, label: 'Подписчиков', value: '1.2K' },
+		{ icon: Package, label: 'Товаров', value: seller?.userProducts },
+		{ icon: Star, label: 'Подписщики', value: seller?.userPopularity },
+		// { icon: Award, label: 'Продаж', value: seller?.totalSales },
+		// { icon: Users, label: 'Подписчиков', value: '1.2K' },
 	]
 
-	const achievements = [
-		{
-			id: '1',
-			title: 'Лучший продавец месяца',
-			icon: '🏆',
-			date: 'Февраль 2024',
-		},
-		{ id: '2', title: 'Качественный сервис', icon: '⭐', date: 'Январь 2024' },
-		{ id: '3', title: 'Надежный партнер', icon: '🛡️', date: 'Декабрь 2023' },
-	]
+	// const achievements = [
+	// 	{
+	// 		id: '1',
+	// 		title: 'Лучший продавец месяца',
+	// 		icon: '🏆',
+	// 		date: 'Февраль 2024',
+	// 	},
+	// 	{ id: '2', title: 'Качественный сервис', icon: '⭐', date: 'Январь 2024' },
+	// 	{ id: '3', title: 'Надежный партнер', icon: '🛡️', date: 'Декабрь 2023' },
+	// ]
 
 	return (
 		<div className='min-h-screen bg-gray-50'>
@@ -67,7 +90,7 @@ export function SellerPage({ sellerId, onNavigate }) {
 				<div className='container mx-auto px-4 py-8'>
 					<Button
 						variant='ghost'
-						onClick={() => onNavigate('marketplace')}
+						onClick={() => router.push('/marketplace')}
 						className='mb-6 text-white hover:bg-white/10'
 					>
 						<ChevronLeft className='w-4 h-4 mr-2' />
@@ -78,30 +101,30 @@ export function SellerPage({ sellerId, onNavigate }) {
 						{/* Profile */}
 						<div className='flex flex-col sm:flex-row gap-6 items-center sm:items-start'>
 							<Avatar className='w-32 h-32'>
-								<AvatarImage src={seller.avatar} />
+								<AvatarImage src={seller?.avatar} />
 								<AvatarFallback className='text-3xl'>
-									{seller.name.charAt(0)}
+									{seller?.name?.charAt(0)}
 								</AvatarFallback>
 							</Avatar>
 
 							<div className='text-center sm:text-left space-y-4'>
 								<div>
-									<h1 className='text-3xl font-bold mb-2'>{seller.name}</h1>
+									<h1 className='text-3xl font-bold mb-2'>{seller?.userName}</h1>
 									<div className='flex items-center justify-center sm:justify-start space-x-4 text-blue-100'>
 										<div className='flex items-center space-x-1'>
 											<MapPin className='w-4 h-4' />
-											<span>{seller.location}</span>
+											<span>{seller?.userLives}</span>
 										</div>
-										<div className='flex items-center space-x-1'>
+										{/* <div className='flex items-center space-x-1'>
 											<Calendar className='w-4 h-4' />
 											<span>
-												С {new Date(seller.joinedDate).getFullYear()} года
+												С {new Date(seller?.joinedDate).getFullYear()} года
 											</span>
-										</div>
+										</div> */}
 									</div>
 								</div>
 
-								<p className='text-blue-100 max-w-md'>{seller.description}</p>
+								<p className='text-blue-100 max-w-md'>{seller?.userDescritpiton}</p>
 
 								<div className='flex flex-col sm:flex-row gap-3'>
 									<Button
@@ -110,22 +133,21 @@ export function SellerPage({ sellerId, onNavigate }) {
 										className='bg-white text-blue-600 hover:bg-blue-50'
 									>
 										<Heart
-											className={`w-4 h-4 mr-2 ${
-												isFollowing ? 'fill-current' : ''
-											}`}
+											className={`w-4 h-4 mr-2 ${isFollowing ? 'fill-current' : ''
+												}`}
 										/>
 										{isFollowing ? 'Отписаться' : 'Подписаться'}
 									</Button>
 									<Button
 										variant='outline'
-										className='border-white text-white hover:bg-white/10'
+										className='border-white text-blue-500 hover:bg-blue-100'
 									>
 										<MessageCircle className='w-4 h-4 mr-2' />
 										Написать
 									</Button>
 									<Button
 										variant='outline'
-										className='border-white text-white hover:bg-white/10'
+										className='border-white text-blue-500 hover:bg-blue-50'
 									>
 										<Share2 className='w-4 h-4' />
 									</Button>
@@ -156,26 +178,19 @@ export function SellerPage({ sellerId, onNavigate }) {
 				<Tabs defaultValue='products' className='w-full'>
 					<TabsList className='grid w-full lg:w-auto grid-cols-3'>
 						<TabsTrigger value='products'>
-							Товары ({sellerProducts.length})
+							Товары ({sellerProducts?.length})
 						</TabsTrigger>
 						<TabsTrigger value='videos'>
-							Видео ({sellerVideos.length})
+							{/* Видео ({sellerVideos?.length}) */}
 						</TabsTrigger>
 						<TabsTrigger value='about'>О продавце</TabsTrigger>
 					</TabsList>
 
 					<TabsContent value='products' className='mt-8'>
-						{sellerProducts.length > 0 ? (
+						{sellerProducts?.length > 0 ? (
 							<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-								{sellerProducts.map(product => (
-									<ProductCard
-										key={product.id}
-										product={product}
-										onProductClick={id =>
-											onNavigate('product', { productId: id })
-										}
-										onSellerClick={id => onNavigate('seller', { sellerId: id })}
-									/>
+								{sellerProducts?.map(product => (
+									<ProductCard key={product.id} product={product} />
 								))}
 							</div>
 						) : (
@@ -191,16 +206,11 @@ export function SellerPage({ sellerId, onNavigate }) {
 						)}
 					</TabsContent>
 
-					<TabsContent value='videos' className='mt-8'>
-						{sellerVideos.length > 0 ? (
+					{/* <TabsContent value='videos' className='mt-8'>
+						{sellerVideos?.length > 0 ? (
 							<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-								{sellerVideos.map(video => (
-									<VideoCard
-										key={video.id}
-										video={video}
-										onVideoClick={id => console.log('Play video:', id)}
-										onSellerClick={id => onNavigate('seller', { sellerId: id })}
-									/>
+								{sellerVideos?.map(video => (
+									<VideoCard key={video.id} video={video} />
 								))}
 							</div>
 						) : (
@@ -214,7 +224,7 @@ export function SellerPage({ sellerId, onNavigate }) {
 								</p>
 							</div>
 						)}
-					</TabsContent>
+					</TabsContent> */}
 
 					<TabsContent value='about' className='mt-8'>
 						<div className='grid lg:grid-cols-3 gap-8'>
@@ -223,7 +233,7 @@ export function SellerPage({ sellerId, onNavigate }) {
 									<CardContent className='p-6'>
 										<h3 className='text-lg font-semibold mb-4'>О мастере</h3>
 										<p className='text-gray-700 leading-relaxed mb-4'>
-											{seller.description}
+											{seller?.description}
 										</p>
 										<p className='text-gray-700 leading-relaxed'>
 											Занимаюсь керамикой уже более 10 лет. Начинала как хобби,
@@ -282,7 +292,7 @@ export function SellerPage({ sellerId, onNavigate }) {
 							</div>
 
 							<div className='space-y-6'>
-								<Card>
+								{/* <Card>
 									<CardContent className='p-6'>
 										<h3 className='text-lg font-semibold mb-4'>Достижения</h3>
 										<div className='space-y-3'>
@@ -304,7 +314,7 @@ export function SellerPage({ sellerId, onNavigate }) {
 											))}
 										</div>
 									</CardContent>
-								</Card>
+								</Card> */}
 
 								<Card>
 									<CardContent className='p-6'>
@@ -312,7 +322,7 @@ export function SellerPage({ sellerId, onNavigate }) {
 										<div className='space-y-3 text-sm'>
 											<div className='flex items-center space-x-2'>
 												<MapPin className='w-4 h-4 text-blue-500' />
-												<span>{seller.location}</span>
+												<span>{seller?.location}</span>
 											</div>
 											<div className='flex items-center space-x-2'>
 												<MessageCircle className='w-4 h-4 text-blue-500' />

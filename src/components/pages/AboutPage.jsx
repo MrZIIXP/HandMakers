@@ -45,9 +45,9 @@ export function AboutPage() {
       description: 'Мастер керамики с 15-летним опытом. Создала платформу для поддержки талантливых рукодельников.'
     },
     {
-      name: 'Михаил Соколов',
-      role: 'Технический директор',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face',
+      name: 'Ахроров Зиёдулло',
+      role: 'SEO и главный разработчик',
+      image: '',
       description: 'Опытный разработчик с экспертизой в создании e-commerce решений.'
     },
     {
