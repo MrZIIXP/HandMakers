@@ -38,6 +38,7 @@ import {
 	DollarSign,
 } from 'lucide-react'
 import { categories } from '../../data/mockData'
+import { jwtDecode } from 'jwt-decode'
 
 export function ProfilePage({ onNavigate }) {
 	const [newProductOpen, setNewProductOpen] = useState(false)
@@ -64,7 +65,7 @@ export function ProfilePage({ onNavigate }) {
 	}
 
 	// Mock user data
-	const user = JSON.parse(atob(localStorage.getItem('token').split('.')[1]))
+	const user = jwtDecode(localStorage.getItem('token'))
 	// || {
 	// 	id: '1',
 	// 	name: 'Анна Гончарова',
