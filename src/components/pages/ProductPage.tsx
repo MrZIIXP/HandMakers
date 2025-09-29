@@ -23,11 +23,13 @@ import {
 } from 'lucide-react'
 import { mockProducts, mockSellers } from '../../data/mockData'
 import { ImageWithFallback } from '../figma/ImageWithFallback'
+import { useParams } from 'next/navigation'
 
-export function ProductPage({ productId, onNavigate }) {
+export function ProductPage({ onNavigate }) {
 	const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 	const [isFavorited, setIsFavorited] = useState(false)
 	const [quantity, setQuantity] = useState(1)
+	const { marketById: productId } = useParams()
 
 	const product = mockProducts.find(p => p.id === productId)
 	const seller = mockSellers.find(s => s.id === product?.sellerId)

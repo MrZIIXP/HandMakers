@@ -1,9 +1,24 @@
 'use client'
-import { useState } from 'react'
+import { useRouter } from '@/i18n/navigation'
+import { useProducts } from '@/store/StoreRequests'
+import { jwtDecode } from 'jwt-decode'
+import {
+	DollarSign,
+	Edit3,
+	Eye,
+	Package,
+	Plus,
+	Star,
+	Upload,
+	Video,
+	X
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { categories } from '../../data/mockData'
+import { ImageWithFallback } from '../figma/ImageWithFallback'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Button } from '../ui/button'
 import { Card, CardContent } from '../ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import {
 	Dialog,
 	DialogContent,
@@ -14,7 +29,6 @@ import {
 } from '../ui/dialog'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
-import { Textarea } from '../ui/textarea'
 import {
 	Select,
 	SelectContent,
@@ -22,28 +36,41 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '../ui/select'
-import { ProductCard } from '../ProductCard'
-import { VideoCard } from '../VideoCard'
-import {
-	Plus,
-	Upload,
-	Edit3,
-	Package,
-	Video,
-	Settings,
-	BarChart3,
-	Star,
-	Eye,
-	TrendingUp,
-	DollarSign,
-} from 'lucide-react'
-import { categories } from '../../data/mockData'
-import { jwtDecode } from 'jwt-decode'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import { Textarea } from '../ui/textarea'
 
 export function ProfilePage({ onNavigate }) {
+	const { products, addProducts, products_by_id, add_loading, getProductsById } = useProducts()
 	const [newProductOpen, setNewProductOpen] = useState(false)
 	const [newVideoOpen, setNewVideoOpen] = useState(false)
 	const [editProfileOpen, setEditProfileOpen] = useState(false)
+	const router = useRouter()
+
+	useEffect(() => {
+		if (!localStorage.getItem('token')) {
+			router.push("/login")
+		}
+	}, [])
+
+	const user = localStorage.getItem("token") && jwtDecode(localStorage.getItem('token'))
+	const [newProduct, setNewProduct] = useState({
+		title: '',
+		description: '',
+		category: '',
+		userId: user?.id,
+		userName: user?.name,
+		userImage: user?.image || "",
+		Likes: [],
+		image: [],
+		price: '',
+	})
+
+	useEffect(() => {
+		if (localStorage.getItem("token")) {
+			getProductsById(jwtDecode(localStorage.getItem('token'))?.id)
+		}
+	}, [])
+
 
 	if (!localStorage.getItem("token")) {
 		return (
@@ -64,19 +91,6 @@ export function ProfilePage({ onNavigate }) {
 		)
 	}
 
-	// Mock user data
-	const user = jwtDecode(localStorage.getItem('token'))
-	// || {
-	// 	id: '1',
-	// 	name: 'Анна Гончарова',
-	// 	email: 'anna@example.com',
-	// 	avatar:
-	// 		'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-	// 	isSeller: true,
-	// 	description:
-	// 		'Керамист с 10-летним опытом. Создаю уникальную посуду и декор.',
-	// 	location: 'Москва',
-	// }
 
 	const myProducts = [
 		{
@@ -119,7 +133,7 @@ export function ProfilePage({ onNavigate }) {
 		{
 			icon: Package,
 			label: 'Товаров',
-			value: myProducts.length,
+			value: products_by_id?.length || 0,
 			color: 'bg-blue-500',
 		},
 		{
@@ -224,7 +238,6 @@ export function ProfilePage({ onNavigate }) {
 				</div>
 			</div>
 
-			{/* Main Content */}
 			<div className='container mx-auto px-4 pb-8'>
 				<Tabs defaultValue='products' className='w-full'>
 					<TabsList className='grid w-full lg:w-auto grid-cols-4'>
@@ -237,7 +250,7 @@ export function ProfilePage({ onNavigate }) {
 					<TabsContent value='products' className='mt-6'>
 						<div className='flex justify-between items-center mb-6'>
 							<h2 className='text-xl font-semibold'>
-								Мои товары ({myProducts.length})
+								Мои товары ({products_by_id?.length || 0})
 							</h2>
 							<Dialog open={newProductOpen} onOpenChange={setNewProductOpen}>
 								<DialogTrigger asChild>
@@ -253,26 +266,60 @@ export function ProfilePage({ onNavigate }) {
 											Заполните информацию о вашем товаре
 										</DialogDescription>
 									</DialogHeader>
-									<div className='space-y-4'>
-										<div>
+									<form className='space-y-4' onSubmit={async (e) => {
+										e.preventDefault()
+										try {
+											if (newProduct.title && newProduct.description && newProduct.price && newProduct.category && newProduct.image) {
+												const formData = new FormData()
+												for (let i = 0; i < newProduct.image.length; i++) {
+													formData.append('image', newProduct.image[i])
+												}
+												formData.append('title', newProduct.title)
+												formData.append('description', newProduct.description)
+												formData.append('category', newProduct.category)
+												formData.append('userId', user?.id)
+												formData.append('userName', user?.name)
+												formData.append('userImage', user?.image || "")
+												formData.append('price', newProduct.price)
+
+												await addProducts(formData)
+												setNewProductOpen(false)
+												setNewProduct({
+													title: '',
+													description: '',
+													category: '',
+													userId: user?.id,
+													userName: user?.name,
+													userImage: user?.image || "",
+													Likes: [],
+													image: [],
+													price: '',
+												})
+											}
+										} catch (error) {
+
+										}
+									}}>
+										<div className='flex flex-col gap-2'>
 											<Label htmlFor='title'>Название</Label>
-											<Input id='title' placeholder='Название товара' />
+											<Input id='title' placeholder='Название товара' onChange={e => setNewProduct({ ...newProduct, title: e.target.value })} />
 										</div>
-										<div>
+										<div className='flex flex-col gap-2'>
 											<Label htmlFor='description'>Описание</Label>
 											<Textarea
 												id='description'
 												placeholder='Описание товара'
+												onChange={e => setNewProduct({ ...newProduct, description: e.target.value })}
 											/>
 										</div>
 										<div className='grid grid-cols-2 gap-4'>
-											<div>
+											<div className='flex flex-col gap-2'>
 												<Label htmlFor='price'>Цена (₽)</Label>
-												<Input id='price' type='number' placeholder='0' />
+												<Input id='price' type='number' onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} placeholder='0' />
 											</div>
-											<div>
+											<div className='flex flex-col gap-2'>
 												<Label htmlFor='category'>Категория</Label>
-												<Select>
+												<Select onValueChange={category => setNewProduct({ ...newProduct, category })}>
 													<SelectTrigger>
 														<SelectValue placeholder='Выберите категорию' />
 													</SelectTrigger>
@@ -286,23 +333,31 @@ export function ProfilePage({ onNavigate }) {
 												</Select>
 											</div>
 										</div>
-										<div>
+										<div className='flex flex-col gap-2'>
 											<Label htmlFor='images'>Изображения</Label>
-											<div className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center'>
+											{newProduct.image.length === 0 ? <label htmlFor='images' className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center'>
 												<Upload className='w-8 h-8 text-gray-400 mx-auto mb-2' />
 												<p className='text-sm text-gray-600'>
 													Нажмите для загрузки изображений
 												</p>
-											</div>
+											</label> : <div className='grid grid-cols-4 gap-2'>
+												{Array.from(newProduct.image).map((file, index) => (
+													<div className='w-full h-full relative aspect-square' key={index}>
+														<X className='p-3 bg-white/60 absolute top-0 right-0 cursor-pointer z-10' onClick={() => setNewProduct(prev => ({ ...prev, image: Array.from(prev.image).filter((_, i) => i !== index) }))} />
+														<ImageWithFallback src={URL.createObjectURL(file)} alt={file.name} className='w-full relative z-0 h-full object-cover rounded-lg' />
+													</div>
+												))}
+											</div>}
+											<input type="file" onChange={(e) => { setNewProduct(prev => ({ ...prev, image: e.target.files })) }} name='images' multiple id="images" className='hidden' />
 										</div>
-										<Button className='w-full'>Добавить товар</Button>
-									</div>
+										<Button type='submit' disabled={add_loading} className='w-full'>Добавить товар</Button>
+									</form>
 								</DialogContent>
 							</Dialog>
 						</div>
 
 						<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-							{myProducts.map(product => (
+							{products_by_id?.map(product => (
 								<div key={product.id} className='relative'>
 									<div className='bg-white rounded-xl border border-gray-200 overflow-hidden'>
 										<div className='relative aspect-square'>
@@ -336,7 +391,7 @@ export function ProfilePage({ onNavigate }) {
 												{product.title}
 											</h3>
 											<p className='text-lg font-bold text-blue-600 mb-3'>
-												{product.price.toLocaleString()} ₽
+												{product.price?.toLocaleString()} ₽
 											</p>
 											<div className='flex items-center justify-between text-sm text-gray-500'>
 												<div className='flex items-center space-x-1'>

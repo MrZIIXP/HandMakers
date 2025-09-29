@@ -9,8 +9,9 @@ import { Separator } from '../ui/separator'
 import { Eye, EyeOff, Mail, Lock, Heart } from 'lucide-react'
 import { ImageWithFallback } from '../figma/ImageWithFallback'
 import axios from 'axios'
+import { useRouter } from '@/i18n/navigation'
 
-export function LoginPage({ onNavigate }) {
+export function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -18,6 +19,7 @@ export function LoginPage({ onNavigate }) {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const loginUser = async (email, password) => {
     try {
@@ -33,8 +35,9 @@ export function LoginPage({ onNavigate }) {
       if (response?.data?.data && formData.rememberMe) {
         localStorage.setItem('user', JSON.stringify(response.data.data))
       }
-      isLoading(false)
+      setIsLoading(false)
     } catch (error) {
+      setIsLoading(false)
       console.error('Ошибка входа:', error)
       throw error
     }
@@ -45,9 +48,16 @@ export function LoginPage({ onNavigate }) {
     e.preventDefault()
     setIsLoading(true)
 
-    if (formData.email && formData.password) {
-      await loginUser(formData.email, formData.password)
+    try {
+      if (formData.email && formData.password) {
+        await loginUser(formData.email, formData.password)
+        router.push("/")
+      }
+    } catch (error) {
+      console.error('Ошибка входа:', error)
+      throw error
     }
+
   }
 
   const handleChange = (field, value) => {
@@ -172,7 +182,7 @@ export function LoginPage({ onNavigate }) {
                 Нет аккаунта?{' '}
                 <button
                   type="button"
-                  onClick={() => onNavigate('register')}
+                  onClick={() => router.push('/register')}
                   className="text-blue-600 hover:text-blue-500 font-medium"
                 >
                   Зарегистрируйтесь

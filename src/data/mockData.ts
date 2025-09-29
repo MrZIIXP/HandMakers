@@ -1,6 +1,5 @@
-import { Product, Seller, Video } from '../types';
 
-export const mockProducts: Product[] = [
+export const mockProducts = [
   {
     id: '1',
     title: 'Керамическая ваза ручной работы',
@@ -135,7 +134,7 @@ export const mockProducts: Product[] = [
   }
 ];
 
-export const mockSellers: Seller[] = [
+export const mockSellers = [
   {
     id: '1',
     name: 'Анна Гончарова',
@@ -198,7 +197,7 @@ export const mockSellers: Seller[] = [
   }
 ];
 
-export const mockVideos: Video[] = [
+export const mockVideos = [
   {
     id: '1',
     title: 'Как создать керамическую вазу',

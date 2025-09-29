@@ -13,13 +13,38 @@ import { AxiosRequest } from '@/store/axiosRequest'
 
 export function HomePage() {
 	const [mockProducts, setMockProducts] = useState(null)
+	const [mockSellers, setMockSellers] = useState(null)
+	const [currentImg, setImg] = useState("https://images.unsplash.com/photo-1678791673777-57274271e434?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYW5kbWFkZSUyMGNyYWZ0cyUyMHBvdHRlcnl8ZW58MXx8fHwxNzU4NjMyNjk1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral")
+
+
+
+	useEffect(() => {
+		const mass = [
+			"https://images.unsplash.com/photo-1678791673777-57274271e434?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYW5kbWFkZSUyMGNyYWZ0cyUyMHBvdHRlcnl8ZW58MXx8fHwxNzU4NjMyNjk1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+			"https://images.unsplash.com/photo-1715374033196-0ff662284a7e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYW5kbWFkZSUyMGpld2VscnklMjBjcmFmdHN8ZW58MXx8fHwxNzU4NTI0MTY3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+			"https://images.unsplash.com/photo-1755991699037-73eb5dff62f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYW5kbWFkZSUyMHRleHRpbGVzJTIwY3JhZnRzfGVufDF8fHx8MTc1ODYzMjcwM3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+			"https://images.unsplash.com/photo-1667508868067-4aa2a35cd93c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYW5kbWFkZSUyMHBhaW50aW5nJTIwYXJ0fGVufDF8fHx8MTc1ODYzMjY5OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+		]
+		let i = 1
+		const interval = setInterval(() => {
+			if (i === 4) {
+				i = 0
+			}
+			setImg(mass[i])
+			i += 1
+			console.log(i)
+		}, 5000)
+		return () => clearInterval(interval)
+	}, [])
 
 	const Update = async () => {
 		try {
 			const { data } = await AxiosRequest.get(
 				'/Products'
 			)
+			const { data: data2 } = await AxiosRequest.get("/users")
 			setMockProducts(data)
+			setMockSellers(data2)
 		} catch (error) { }
 	}
 
@@ -29,25 +54,27 @@ export function HomePage() {
 
 	const featuredProducts = mockProducts?.slice(0, 4)
 	const featuredVideos = mockVideos?.slice(0, 3)
-	const topSellers = mockSellers?.slice(0, 3)
+	const topSellers = mockSellers?.sort((a, b) => b.subscribers?.length - a.subscribers?.length).slice(0, 3)
 
 	const router = useRouter()
 
 	return (
-		<div className='space-y-16'>
+		<div className=''>
 			{/* Hero Section */}
-			<section className='relative bg-gradient-to-br from-blue-50 to-white py-20'>
-				<div className='container mx-auto px-4'>
+			<section className='relative py-20 bg-cover bg-center overflow-hidden'>
+				<div className='absolute inset-0 blur-sm z-0 w-full transition-all duration-500 scale-110' style={{ backgroundImage: `url("${currentImg}")` }} />
+				<div className='absolute inset-0 bg-black/20 z-[5] w-full' />
+				<div className='container relative z-10 mx-auto px-4'>
 					<div className='grid lg:grid-cols-2 gap-12 items-center'>
 						<div className='space-y-6'>
 							<Badge className='bg-blue-100 text-blue-700 hover:bg-blue-100'>
 								🎨 Платформа для мастеров
 							</Badge>
-							<h1 className='text-4xl lg:text-6xl font-bold text-blue-900 leading-tight'>
+							<h1 className='text-4xl lg:text-6xl font-bold z-10 text-blue-900 leading-tight'>
 								Мир рукоделия
 								<span className='block text-blue-600'>в ваших руках</span>
 							</h1>
-							<p className='text-lg text-gray-600 leading-relaxed'>
+							<p className='text-lg text-gray-300 leading-relaxed'>
 								Откройте для себя уникальные изделия ручной работы, созданные
 								талантливыми мастерами. Покупайте, продавайте и делитесь своим
 								творчеством с сообществом единомышленников.
@@ -140,7 +167,7 @@ export function HomePage() {
 			</section>
 
 			{/* Featured Products */}
-			<section className='container mx-auto px-4'>
+			<section className='container my-8 mx-auto px-4'>
 				<div className='flex items-center justify-between mb-8'>
 					<div>
 						<h2 className='text-3xl font-bold text-blue-900 mb-2'>
@@ -175,7 +202,7 @@ export function HomePage() {
 					</div>
 				</div>
 				<div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-					{topSellers.map(seller => (
+					{topSellers?.map(seller => (
 						<Card
 							key={seller.id}
 							className='border-blue-100 hover:shadow-lg transition-all duration-300 cursor-pointer'
@@ -198,10 +225,7 @@ export function HomePage() {
 								<div className='flex items-center justify-center space-x-4 text-sm'>
 									<div className='flex items-center space-x-1'>
 										<Star className='w-4 h-4 text-yellow-500 fill-current' />
-										<span>{seller.rating}</span>
-									</div>
-									<div className='text-gray-500'>
-										{seller.totalSales} продаж
+										<span>{seller.subscribers?.length}</span>
 									</div>
 								</div>
 								<p className='text-sm text-gray-600 line-clamp-2'>
@@ -214,7 +238,7 @@ export function HomePage() {
 			</section>
 
 			{/* Featured Videos */}
-			<section className='bg-blue-50 py-16'>
+			<section className='bg-blue-50 my-8 py-16'>
 				<div className='container mx-auto px-4'>
 					<div className='flex items-center justify-between mb-8'>
 						<div>

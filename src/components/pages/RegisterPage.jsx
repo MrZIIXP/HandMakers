@@ -8,19 +8,20 @@ import { Checkbox } from '../ui/checkbox'
 import { Separator } from '../ui/separator'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Eye, EyeOff, Mail, Lock, User, Heart, MapPin } from 'lucide-react'
-import { AxiosRequest } from '@/store/axiosRequest'
+import { useRouter } from '@/i18n/navigation'
+import axios from 'axios'
 
 export function RegisterPage({ onNavigate }) {
 	const [step, setStep] = useState(1)
 
 	const registerUser = async (userData) => {
 		try {
-			const { confirmPassword, ...dataToSend } = userData
-			const response = await axios.post(`/register`, dataToSend)
+			const { confirmPassword, agreeTerms, agreeNewsletter, ...dataToSend } = userData
+			const response = await axios.post(`https://2b28d574f3d0f0d6.mokky.dev/register`, dataToSend)
 
 			if (response?.data?.token) {
 				localStorage.setItem("token", response?.data?.token)
-			}	
+			}
 			return response.data
 		} catch (error) {
 			console.error('Ошибка регистрации:', error)
@@ -40,12 +41,14 @@ export function RegisterPage({ onNavigate }) {
 		categories: [],
 		agreeTerms: false,
 		agreeNewsletter: false,
+		subscribers: [],
+		subscribtions: []
 	})
 	const [showPassword, setShowPassword] = useState(false)
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState('')
-
+	const router = useRouter()
 	const categories = [
 		'керамика',
 		'живопись',
@@ -63,7 +66,6 @@ export function RegisterPage({ onNavigate }) {
 			return
 		}
 
-		// Валидация
 		if (formData.password !== formData.confirmPassword) {
 			setError('Пароли не совпадают')
 			return
@@ -83,11 +85,8 @@ export function RegisterPage({ onNavigate }) {
 		setError('')
 
 		try {
-			// Регистрация через Mokky.dev
 			await registerUser(formData)
-
-			// Успешная регистрация
-			onRegister()
+			router.push('/')
 		} catch (error) {
 			console.error('Ошибка регистрации:', error)
 			setError(
@@ -101,7 +100,6 @@ export function RegisterPage({ onNavigate }) {
 
 	const handleChange = (field, value) => {
 		setFormData(prev => ({ ...prev, [field]: value }))
-		// Очищаем ошибку при изменении данных
 		if (error) setError('')
 	}
 
@@ -453,7 +451,7 @@ export function RegisterPage({ onNavigate }) {
 										Уже есть аккаунт?{' '}
 										<button
 											type='button'
-											onClick={() => onNavigate('login')}
+											onClick={() => router.push('/login')}
 											className='text-blue-600 hover:text-blue-500 font-medium'
 										>
 											Войти
