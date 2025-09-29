@@ -44,11 +44,7 @@ export const useProducts = create(set => ({
 	addProducts: async data => {
 		set({ add_loading: true })
 		try {
-			await AxiosRequest.post('/Products', data, {
-				headers: {
-					'Content-Type': 'multipart/form-data',
-				},
-			})
+			await AxiosRequest.post('/Products', data)
 			set(prev => ({
 				products: [...prev.products, data],
 				add_loading: false,

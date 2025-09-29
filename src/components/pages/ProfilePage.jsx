@@ -38,12 +38,14 @@ import {
 } from '../ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Textarea } from '../ui/textarea'
+import axios from 'axios'
 
 export function ProfilePage({ onNavigate }) {
 	const { products, addProducts, products_by_id, add_loading, getProductsById } = useProducts()
 	const [newProductOpen, setNewProductOpen] = useState(false)
 	const [newVideoOpen, setNewVideoOpen] = useState(false)
 	const [editProfileOpen, setEditProfileOpen] = useState(false)
+	const [uploading, setUploading] = useState(false)
 	const router = useRouter()
 
 	useEffect(() => {
@@ -70,6 +72,28 @@ export function ProfilePage({ onNavigate }) {
 			getProductsById(jwtDecode(localStorage.getItem('token'))?.id)
 		}
 	}, [])
+
+	const uploadImageToImgBB = async (file) => {
+		const formData = new FormData()
+		formData.append('image', file)
+		formData.append('key', '583def9a88e3ee87c3527c231b2912d1')
+		setUploading(true)
+		try {
+			const { data } = await axios.post('https://api.imgbb.com/1/upload', formData)
+			console.log(data)
+			if (data.success) {
+				return { url: data.data.url, id: data.data.id }
+			} else {
+				throw new Error(data.error.message || 'Ошибка загрузки')
+			}
+		} catch (error) {
+			console.error('Ошибка загрузки на ImgBB:', error)
+			throw error
+		}
+		finally {
+			setUploading(false)
+		}
+	}
 
 
 	if (!localStorage.getItem("token")) {
@@ -269,32 +293,27 @@ export function ProfilePage({ onNavigate }) {
 									<form className='space-y-4' onSubmit={async (e) => {
 										e.preventDefault()
 										try {
-											if (newProduct.title && newProduct.description && newProduct.price && newProduct.category && newProduct.image) {
-												const formData = new FormData()
-												for (let i = 0; i < newProduct.image.length; i++) {
-													formData.append('image', newProduct.image[i])
+											if (newProduct.title && newProduct.description && newProduct.price && newProduct.category && newProduct.image?.length > 0) {
+												const files = []
+												for (const file of Array.from(newProduct.image)) {
+													const url = await uploadImageToImgBB(file)
+													files.push(url)
 												}
-												formData.append('title', newProduct.title)
-												formData.append('description', newProduct.description)
-												formData.append('category', newProduct.category)
-												formData.append('userId', user?.id)
-												formData.append('userName', user?.name)
-												formData.append('userImage', user?.image || "")
-												formData.append('price', newProduct.price)
-
-												await addProducts(formData)
-												setNewProductOpen(false)
-												setNewProduct({
-													title: '',
-													description: '',
-													category: '',
-													userId: user?.id,
-													userName: user?.name,
-													userImage: user?.image || "",
-													Likes: [],
-													image: [],
-													price: '',
-												})
+												if (files.length > 0) {
+													await addProducts({ ...newProduct, image: files })
+													setNewProductOpen(false)
+													setNewProduct({
+														title: '',
+														description: '',
+														category: '',
+														userId: user?.id,
+														userName: user?.name,
+														userImage: user?.image || "",
+														Likes: [],
+														image: [],
+														price: '',
+													})
+												}
 											}
 										} catch (error) {
 
@@ -335,22 +354,51 @@ export function ProfilePage({ onNavigate }) {
 										</div>
 										<div className='flex flex-col gap-2'>
 											<Label htmlFor='images'>Изображения</Label>
-											{newProduct.image.length === 0 ? <label htmlFor='images' className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center'>
-												<Upload className='w-8 h-8 text-gray-400 mx-auto mb-2' />
-												<p className='text-sm text-gray-600'>
-													Нажмите для загрузки изображений
-												</p>
-											</label> : <div className='grid grid-cols-4 gap-2'>
-												{Array.from(newProduct.image).map((file, index) => (
-													<div className='w-full h-full relative aspect-square' key={index}>
-														<X className='p-3 bg-white/60 absolute top-0 right-0 cursor-pointer z-10' onClick={() => setNewProduct(prev => ({ ...prev, image: Array.from(prev.image).filter((_, i) => i !== index) }))} />
-														<ImageWithFallback src={URL.createObjectURL(file)} alt={file.name} className='w-full relative z-0 h-full object-cover rounded-lg' />
-													</div>
-												))}
-											</div>}
-											<input type="file" onChange={(e) => { setNewProduct(prev => ({ ...prev, image: e.target.files })) }} name='images' multiple id="images" className='hidden' />
+											{newProduct.image.length === 0 ? (
+												<label
+													htmlFor='images'
+													className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer'
+												>
+													<Upload className='w-8 h-8 text-gray-400 mx-auto mb-2' />
+													<p className='text-sm text-gray-600'>Нажмите для загрузки изображений</p>
+												</label>
+											) : (
+												<div className='grid grid-cols-4 gap-2'>
+													{Array.from(newProduct.image).map((url, index) => (
+														<div className='w-full h-full relative aspect-square' key={index}>
+															<X
+																className='p-3 bg-white/60 absolute top-0 right-0 cursor-pointer z-10'
+																onClick={async () => {
+																	setNewProduct((prev) => ({
+																		...prev,
+																		image: Array.from(prev.image).filter((_, i) => i !== index),
+																	}))
+																}}
+															/>
+															<ImageWithFallback
+																src={URL.createObjectURL(url)}
+																alt={`preview-${index}`}
+																className='w-full h-full object-cover rounded-lg'
+															/>
+														</div>
+													))}
+												</div>
+											)}
+											<input
+												type='file'
+												accept='image/*'
+												multiple
+												id='images'
+												className='hidden'
+												onChange={async (e) => {
+													setNewProduct((prev) => ({
+														...prev,
+														image: e.target.files,
+													}))
+												}}
+											/>
 										</div>
-										<Button type='submit' disabled={add_loading} className='w-full'>Добавить товар</Button>
+										<Button type='submit' disabled={add_loading || uploading} className='w-full'>{add_loading || uploading ? 'Добавление...' : "Добавить товар"}</Button>
 									</form>
 								</DialogContent>
 							</Dialog>

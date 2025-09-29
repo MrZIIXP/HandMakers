@@ -11,7 +11,7 @@ export function ProductCard({ product }) {
 			{/* Image */}
 			<div className='relative aspect-square overflow-hidden'>
 				<ImageWithFallback
-					src={product?.image}
+					src={product?.image?.[0]?.url}
 					alt={product?.product}
 					onClick={() => router.push(`/marketplace/${product?.id}`)}
 					className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer'
@@ -66,7 +66,7 @@ export function ProductCard({ product }) {
 				<div className='flex items-center justify-between pt-2'>
 					<div className='flex items-center space-x-2'>
 						<span className='text-lg font-semibold text-blue-600'>
-							{product?.price.toLocaleString()} ₽
+							{product?.price?.toLocaleString()} ₽
 						</span>
 					</div>
 					<div className='flex items-center space-x-2'>
