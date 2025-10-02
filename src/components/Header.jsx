@@ -7,13 +7,15 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Badge } from './ui/badge'
 import { Heart, Search, ShoppingCart, User, Menu, X } from 'lucide-react'
+import ChatBotClient, { ChatBot } from './Chat'
+
 
 export function Header({ login = false }) {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const getCurrentPage = () => {
-    if (pathname === '/en'|| pathname === "/tj" || pathname === "en") return 'home'
+    if (pathname === '/en' || pathname === "/tj" || pathname === "en") return 'home'
     if (pathname.includes('/videos')) return 'videos'
     if (pathname.includes('/marketplace')) return 'marketplace'
     if (pathname.includes('/about')) return 'about'
@@ -51,8 +53,8 @@ export function Header({ login = false }) {
                 key={item.id}
                 href={item.href}
                 className={`px-3 py-2 rounded-lg transition-colors ${currentPage === item.id
-                    ? 'text-blue-600 bg-blue-50 font-medium'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                  ? 'text-blue-600 bg-blue-50 font-medium'
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
                   }`}
               >
                 {item.label}
@@ -71,10 +73,13 @@ export function Header({ login = false }) {
             </div>
           </div>
 
+
+
           {/* Right Actions */}
           <div className="flex items-center space-x-3">
             {localStorage.getItem("token") ? (
               <>
+                <ChatBotClient />
                 <Link href="/profile" className="hidden sm:flex">
                   <Button
                     variant="ghost"
@@ -133,8 +138,8 @@ export function Header({ login = false }) {
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
                   className={`text-left px-4 py-2 rounded-lg transition-colors ${currentPage === item.id
-                      ? 'text-blue-600 bg-blue-50 font-medium'
-                      : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                    ? 'text-blue-600 bg-blue-50 font-medium'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
                     }`}
                 >
                   {item.label}

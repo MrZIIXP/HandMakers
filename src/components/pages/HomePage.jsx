@@ -10,12 +10,12 @@ import { ImageWithFallback } from '../figma/ImageWithFallback'
 import { useEffect, useState } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { AxiosRequest } from '@/store/axiosRequest'
+import { useProducts } from '@/store/StoreRequests'
 
 export function HomePage() {
-	const [mockProducts, setMockProducts] = useState(null)
 	const [mockSellers, setMockSellers] = useState(null)
 	const [currentImg, setImg] = useState("https://images.unsplash.com/photo-1678791673777-57274271e434?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYW5kbWFkZSUyMGNyYWZ0cyUyMHBvdHRlcnl8ZW58MXx8fHwxNzU4NjMyNjk1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral")
-
+	const { products: mockProducts, getProducts } = useProducts()
 
 
 	useEffect(() => {
@@ -39,12 +39,9 @@ export function HomePage() {
 
 	const Update = async () => {
 		try {
-			const { data } = await AxiosRequest.get(
-				'/Products'
-			)
-			const { data: data2 } = await AxiosRequest.get("/users")
-			setMockProducts(data)
-			setMockSellers(data2)
+			await getProducts()
+			// const { data: data2 } = await AxiosRequest.get("/users")
+			setMockSellers([])
 		} catch (error) { }
 	}
 

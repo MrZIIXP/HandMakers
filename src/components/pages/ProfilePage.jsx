@@ -63,6 +63,7 @@ export function ProfilePage({ onNavigate }) {
 		userName: user?.name,
 		userImage: user?.image || "",
 		Likes: [],
+		comments: [],
 		image: [],
 		price: '',
 	})
