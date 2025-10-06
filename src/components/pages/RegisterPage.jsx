@@ -36,6 +36,8 @@ export function RegisterPage({ onNavigate }) {
 		confirmPassword: '',
 		location: '',
 		userType: 'buyer',
+		imgBB: "",
+		image: { image: "", id: "" },
 		storeName: '',
 		description: '',
 		categories: [],

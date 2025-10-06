@@ -8,6 +8,7 @@ import { Input } from './ui/input'
 import { Badge } from './ui/badge'
 import { Heart, Search, ShoppingCart, User, Menu, X } from 'lucide-react'
 import ChatBotClient, { ChatBot } from './Chat'
+import Chat from './Chat'
 
 
 export function Header({ login = false }) {
@@ -79,7 +80,7 @@ export function Header({ login = false }) {
           <div className="flex items-center space-x-3">
             {localStorage.getItem("token") ? (
               <>
-                <ChatBotClient />
+                <Chat />
                 <Link href="/profile" className="hidden sm:flex">
                   <Button
                     variant="ghost"

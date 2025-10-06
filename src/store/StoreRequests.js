@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { AxiosRequest } from './axiosRequest'
 import axios from 'axios'
+import { jwtDecode } from 'jwt-decode'
 
 export const useProducts = create(set => ({
 	products: [],
@@ -105,6 +106,51 @@ export const useProducts = create(set => ({
 			}))
 		} catch (error) {
 			set({ edit_loading: false })
+		}
+	},
+}))
+
+export const useProfile = create(set => ({
+	user: null,
+	loading: false,
+	del_loading: false,
+	edit_loading: false,
+	error: null,
+	getUser: async () => {
+		set({ loading: true })
+		try {
+			const { data } = await AxiosRequest.get(
+				'/users?id=' + jwtDecode(localStorage.getItem('token'))?.id
+			)
+			set({ user: data[0], loading: false })
+		} catch (error) {
+			set({ loading: false, error: error.message })
+		}
+	},
+
+	delUser: async () => {
+		set({ del_loading: true })
+		try {
+			await AxiosRequest.delete(
+				'/users/' + jwtDecode(localStorage.getItem('token'))?.id
+			)
+			set({ del_loading: false })
+			window.location.href = '/'
+		} catch (error) {
+			set({ del_loading: false, error: error.message })
+		}
+	},
+
+	editUser: async data => {
+		set({ edit_loading: true })
+		try {
+			await AxiosRequest.patch(
+				'/users/' + jwtDecode(localStorage.getItem('token'))?.id,
+				data
+			)
+			set({ edit_loading: false, user: data })
+		} catch (error) {
+			set({ edit_loading: false, error: error.message })
 		}
 	},
 }))

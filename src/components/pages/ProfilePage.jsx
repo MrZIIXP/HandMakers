@@ -1,6 +1,6 @@
 'use client'
 import { useRouter } from '@/i18n/navigation'
-import { useProducts } from '@/store/StoreRequests'
+import { useProducts, useProfile } from '@/store/StoreRequests'
 import { jwtDecode } from 'jwt-decode'
 import {
 	DollarSign,
@@ -41,7 +41,8 @@ import { Textarea } from '../ui/textarea'
 import axios from 'axios'
 
 export function ProfilePage({ onNavigate }) {
-	const { products, addProducts, products_by_id, add_loading, getProductsById } = useProducts()
+	const { addProducts, loading, products_by_id, add_loading, getProductsByUserId } = useProducts()
+	const { editUser, user, edit_loading, getUser } = useProfile()
 	const [newProductOpen, setNewProductOpen] = useState(false)
 	const [newVideoOpen, setNewVideoOpen] = useState(false)
 	const [editProfileOpen, setEditProfileOpen] = useState(false)
@@ -52,16 +53,18 @@ export function ProfilePage({ onNavigate }) {
 		if (!localStorage.getItem('token')) {
 			router.push("/login")
 		}
+		else {
+			getUser()
+		}
 	}, [])
 
-	const user = localStorage.getItem("token") && jwtDecode(localStorage.getItem('token'))
 	const [newProduct, setNewProduct] = useState({
 		title: '',
 		description: '',
 		category: '',
 		userId: user?.id,
 		userName: user?.name,
-		userImage: user?.image || "",
+		userImage: user?.image?.image || "",
 		Likes: [],
 		comments: [],
 		image: [],
@@ -70,19 +73,28 @@ export function ProfilePage({ onNavigate }) {
 
 	useEffect(() => {
 		if (localStorage.getItem("token")) {
-			getProductsById(jwtDecode(localStorage.getItem('token'))?.id)
+			getProductsByUserId(jwtDecode(localStorage.getItem('token'))?.id)
 		}
 	}, [])
 
+	const [error, setError] = useState("")
+
 	const uploadImageToImgBB = async (file) => {
+
+		if (user?.imgBB === "") {
+			setError("Вы не можете загружать изображения, пожалуйста вставьте свой ключ в настройках")
+			return
+		}
+
 		const formData = new FormData()
 		formData.append('image', file)
-		formData.append('key', '583def9a88e3ee87c3527c231b2912d1')
+		formData.append('key', user?.imgBB)
 		setUploading(true)
 		try {
 			const { data } = await axios.post('https://api.imgbb.com/1/upload', formData)
 			console.log(data)
 			if (data.success) {
+				setError("")
 				return { url: data.data.url, id: data.data.id }
 			} else {
 				throw new Error(data.error.message || 'Ошибка загрузки')
@@ -116,6 +128,22 @@ export function ProfilePage({ onNavigate }) {
 		)
 	}
 
+	const Submit = async (e) => {
+		e.preventDefault()
+		const obj = {
+			name: e.target.name.value || user.name,
+			email: e.target.email.value || user.email,
+			imgBB: e.target.imgBB.value || user.imgBB,
+			location: e.target.location.value || user.location,
+			description: e.target.description.value || user.description
+		}
+
+		try {
+			await editUser({ ...user, ...obj })
+		} catch {
+
+		}
+	}
 
 	const myProducts = [
 		{
@@ -167,13 +195,6 @@ export function ProfilePage({ onNavigate }) {
 			value: myVideos.length,
 			color: 'bg-purple-500',
 		},
-		{ icon: Eye, label: 'Просмотры', value: '1.2K', color: 'bg-green-500' },
-		{
-			icon: DollarSign,
-			label: 'Продажи',
-			value: '45K ₽',
-			color: 'bg-orange-500',
-		},
 	]
 
 	return (
@@ -213,24 +234,43 @@ export function ProfilePage({ onNavigate }) {
 											Обновите информацию о себе
 										</DialogDescription>
 									</DialogHeader>
-									<div className='space-y-4'>
-										<div>
+									<form className='space-y-4' onSubmit={Submit}>
+										<div className='space-y-2'>
 											<Label htmlFor='name'>Имя</Label>
-											<Input id='name' defaultValue={user?.name} />
+											<Input name='name' id='name' defaultValue={user?.name} />
 										</div>
-										<div>
+										<div className='space-y-2'>
+											<Label htmlFor='email'>Email</Label>
+											<Input
+												name='email'
+												id='email'
+												type='email'
+												defaultValue={user?.email}
+											/>
+										</div>
+										<div className='space-y-2'>
+											<Label htmlFor='imgBB'>API key from ImgBB</Label>
+											<Input
+												name='imgBB'
+												id='imgBB'
+												type='text'
+												placeholder='XXXXXXXXXXXXXXX'
+											/>
+										</div>
+										<div className='space-y-2'>
 											<Label htmlFor='location'>Местоположение</Label>
-											<Input id='location' defaultValue={user?.location} />
+											<Input id='location' name='location' defaultValue={user?.location} />
 										</div>
-										<div>
+										<div className='space-y-2'>
 											<Label htmlFor='description'>Описание</Label>
 											<Textarea
+												name='description'
 												id='description'
 												defaultValue={user?.description}
 											/>
 										</div>
 										<Button className='w-full'>Сохранить</Button>
-									</div>
+									</form>
 								</DialogContent>
 							</Dialog>
 						</div>
@@ -240,7 +280,7 @@ export function ProfilePage({ onNavigate }) {
 
 			{/* Stats */}
 			<div className='container mx-auto px-4 py-6'>
-				<div className='grid grid-cols-2 lg:grid-cols-4 gap-4'>
+				<div className='grid grid-cols-2 gap-4'>
 					{stats.map((stat, index) => (
 						<Card key={index} className='border-0 shadow-sm'>
 							<CardContent className='p-4'>
@@ -290,8 +330,11 @@ export function ProfilePage({ onNavigate }) {
 										<DialogDescription>
 											Заполните информацию о вашем товаре
 										</DialogDescription>
+										<div className={`bg-red-100 ${!error && "hidden"} text-red-500 px-4 py-2 rounded-lg`}>
+											{error}
+										</div>
 									</DialogHeader>
-									<form className='space-y-4' onSubmit={async (e) => {
+									<form style={{scrollbarWidth: "none"}} className='space-y-4 overflow-y-auto h-[60vh]' onSubmit={async (e) => {
 										e.preventDefault()
 										try {
 											if (newProduct.title && newProduct.description && newProduct.price && newProduct.category && newProduct.image?.length > 0) {
@@ -300,7 +343,8 @@ export function ProfilePage({ onNavigate }) {
 													const url = await uploadImageToImgBB(file)
 													files.push(url)
 												}
-												if (files.length > 0) {
+
+												if (files.length > 0 && !error && files.every((item) => typeof item?.url == "string")) {
 													await addProducts({ ...newProduct, image: files })
 													setNewProductOpen(false)
 													setNewProduct({
@@ -309,7 +353,7 @@ export function ProfilePage({ onNavigate }) {
 														category: '',
 														userId: user?.id,
 														userName: user?.name,
-														userImage: user?.image || "",
+														userImage: user?.image?.image || "",
 														Likes: [],
 														image: [],
 														price: '',
@@ -317,7 +361,7 @@ export function ProfilePage({ onNavigate }) {
 												}
 											}
 										} catch (error) {
-
+											setError(error.message)
 										}
 									}}>
 										<div className='flex flex-col gap-2'>
@@ -364,7 +408,7 @@ export function ProfilePage({ onNavigate }) {
 													<p className='text-sm text-gray-600'>Нажмите для загрузки изображений</p>
 												</label>
 											) : (
-												<div className='grid grid-cols-4 gap-2'>
+												<div className='grid gap-2'>
 													{Array.from(newProduct.image).map((url, index) => (
 														<div className='w-full h-full relative aspect-square' key={index}>
 															<X
@@ -388,7 +432,6 @@ export function ProfilePage({ onNavigate }) {
 											<input
 												type='file'
 												accept='image/*'
-												multiple
 												id='images'
 												className='hidden'
 												onChange={async (e) => {
@@ -399,64 +442,57 @@ export function ProfilePage({ onNavigate }) {
 												}}
 											/>
 										</div>
-										<Button type='submit' disabled={add_loading || uploading} className='w-full'>{add_loading || uploading ? 'Добавление...' : "Добавить товар"}</Button>
+										<Button type='submit' disabled={add_loading || uploading || !newProduct.title || !newProduct.description || !newProduct.price || !newProduct.category || newProduct.image.length === 0} className='w-full'>{add_loading || uploading ? 'Добавление...' : (newProduct.title && newProduct.description && newProduct.price && newProduct.category && newProduct.image?.length > 0) ? "Добавить товар" : "Заполните все поля"}</Button>
 									</form>
 								</DialogContent>
 							</Dialog>
 						</div>
-
-						<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-							{products_by_id?.map(product => (
-								<div key={product.id} className='relative'>
-									<div className='bg-white rounded-xl border border-gray-200 overflow-hidden'>
-										<div className='relative aspect-square'>
-											<img
-												src={product.image}
-												alt={product.title}
-												className='w-full h-full object-cover'
-											/>
-											<div className='absolute top-3 right-3'>
-												<Button
-													size='sm'
-													variant='secondary'
-													className='w-8 h-8 p-0'
-												>
-													<Edit3 className='w-4 h-4' />
-												</Button>
-											</div>
-											<div className='absolute top-3 left-3'>
-												<span
-													className={`px-2 py-1 text-xs rounded-full ${product.status === 'active'
-														? 'bg-green-100 text-green-700'
-														: 'bg-yellow-100 text-yellow-700'
-														}`}
-												>
-													{product.status === 'active' ? 'Активен' : 'Черновик'}
-												</span>
-											</div>
-										</div>
-										<div className='p-4'>
-											<h3 className='font-semibold text-gray-900 mb-2'>
-												{product.title}
-											</h3>
-											<p className='text-lg font-bold text-blue-600 mb-3'>
-												{product.price?.toLocaleString()} ₽
-											</p>
-											<div className='flex items-center justify-between text-sm text-gray-500'>
-												<div className='flex items-center space-x-1'>
-													<Eye className='w-4 h-4' />
-													<span>{product.views}</span>
+						{(products_by_id) ?
+							<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+								{products_by_id?.map(product => (
+									<div key={product.id} className='relative'>
+										<div className='bg-white rounded-xl border border-gray-200 overflow-hidden'>
+											<div className='relative aspect-square'>
+												<img
+													src={product.image?.[0]?.url}
+													alt={product.title}
+													className='w-full h-full object-cover'
+												/>
+												<div className='absolute top-3 right-3'>
+													<Button
+														size='sm'
+														variant='secondary'
+														className='w-8 h-8 p-0'
+													>
+														<Edit3 className='w-4 h-4' />
+													</Button>
 												</div>
-												<div className='flex items-center space-x-1'>
-													<Star className='w-4 h-4' />
-													<span>{product.likes}</span>
+											</div>
+											<div className='p-4'>
+												<h3 className='font-semibold text-gray-900 mb-2'>
+													{product.title}
+												</h3>
+												<p className='text-lg font-bold text-blue-600 mb-3'>
+													{product.price?.toLocaleString()} ₽
+												</p>
+												<div className='flex items-center justify-between text-sm text-gray-500'>
+													<div className='flex items-center space-x-1'>
+														<Star className='w-4 h-4' />
+														<span>{product.Likes?.length}</span>
+													</div>
+													<div className='flex items-center space-x-1'>
+														<Eye className='w-4 h-4' />
+														<span>{product.comments?.length}</span>
+													</div>
 												</div>
 											</div>
 										</div>
 									</div>
-								</div>
-							))}
-						</div>
+								))}
+							</div> : (!loading) ?
+								<div className='w-full h-[30vh] flex justify-center items-center bg-gradient-br bg-clip-text font-bold text-2xl from-blue-500 to-blue-100'>Network error</div> :
+								<div className='w-full h-[30vh] flex justify-center items-center'><div className='size-[100px] rounded-full border-b-2 border-blue-500 animate-spin' /></div>
+						}
 					</TabsContent>
 
 					<TabsContent value='videos' className='mt-6'>
@@ -602,33 +638,6 @@ export function ProfilePage({ onNavigate }) {
 
 					<TabsContent value='settings' className='mt-6'>
 						<div className='max-w-2xl space-y-6'>
-							<Card>
-								<CardContent className='p-6'>
-									<h3 className='text-lg font-semibold mb-4'>
-										Настройки профиля
-									</h3>
-									<div className='space-y-4'>
-										<div>
-											<Label htmlFor='displayName'>Отображаемое имя</Label>
-											<Input id='displayName' defaultValue={user?.name} />
-										</div>
-										<div>
-											<Label htmlFor='email'>Email</Label>
-											<Input
-												id='email'
-												type='email'
-												defaultValue={user?.email}
-											/>
-										</div>
-										<div>
-											<Label htmlFor='location'>Местоположение</Label>
-											<Input id='location' defaultValue={user?.location} />
-										</div>
-										<Button>Сохранить изменения</Button>
-									</div>
-								</CardContent>
-							</Card>
-
 							<Card>
 								<CardContent className='p-6'>
 									<h3 className='text-lg font-semibold mb-4'>Уведомления</h3>

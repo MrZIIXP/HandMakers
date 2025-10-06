@@ -33,7 +33,7 @@ export function SellerPage({ onNavigate }) {
 
 	const Update = async () => {
 		try {
-			const { data } = await axios.get("https://2b28d574f3d0f0d6.mokky.dev/Users?id=" + sellerById)
+			const { data } = await axios.get("https://2b28d574f3d0f0d6.mokky.dev/users?id=" + sellerById)
 			const { data: data2 } = await axios.get("https://2b28d574f3d0f0d6.mokky.dev/Products?UserId=" + sellerById)
 			setMockSellers(data?.[0])
 			setMockProducts(data2)
